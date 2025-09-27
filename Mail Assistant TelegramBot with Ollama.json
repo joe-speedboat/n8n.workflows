@@ -1,0 +1,301 @@
+{
+  "name": "Mail Assistant TelegramBot with Ollama",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=/no_think\nFROM: {{ $('Email Trigger (IMAP)').item.json.from }}\nSUBJECT: {{ $('Email Trigger (IMAP)').item.json.subject }}\nMESSAGE: {{ $('Email Trigger (IMAP)').item.json.textPlain }}",
+        "options": {
+          "systemMessage": "=/no_think\nYou are a polite and professional virtual assistant.\n\nEverytime you receive an Email you also send a short summary in same language as the message is, with max. 200 characters by \"TelegramBot\".\nIf you get activation links or MFA- or Login- codes, make sure you send the whole code/pin or URL\n\nWhen using the \"TelegramBot\", make sure to  use the following format:\nF: \"FROM\"\nS: \"SUBJECT\"\nShort summary text, made of the message\n\nAlways ignore Signatures, Footers, Comercials, Replys, just the summary of current message."
+        }
+      },
+      "id": "da5ae1c5-12bb-4a20-b902-5f682799728f",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1616,
+        208
+      ],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "715b9025-a0a3-49e2-ae2a-2785de551684",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "spam",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "0d2592d6-d974-4df5-8308-ff3f8562069b",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1280,
+        224
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "postProcessAction": "nothing",
+        "options": {
+          "forceReconnect": 60,
+          "trackLastMessageId": true
+        }
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        224
+      ],
+      "id": "6d2979c9-c3e5-4c58-9e9f-eb3940dea5a8",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "Oro0hptjnTlLKwX0",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "TelegramBot",
+        "chatId": "=-1001666350805",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        384
+      ],
+      "id": "36180529-f2f0-49c8-b980-b3065fe860a8",
+      "name": "TelegramBot",
+      "webhookId": "bd391293-37c1-4a58-bf22-3d23e12bf8fe",
+      "credentials": {
+        "telegramApi": {
+          "id": "IRwH2FZF3Bqrw3wo",
+          "name": "n8n_bitbull_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=/no_think\nFrom: {{ $json.from }}\nSubject: {{ $json.subject }}\nMessage: {{ $json.textPlain }}",
+        "options": {
+          "systemMessage": "=/no_think\nYou are an email classification assistant.  \nYour only task is to decide whether an email is \"spam\" or \"no spam\".  \n\n## Classification rules:\n\n### Spam\nClassify the email as **spam** if it is:\n- Marketing, selling, advertisement, or commercial offers\n- Phishing, scams, fake alerts, or suspicious links\n- Automated bulk messages, newsletters, promotions\n- Notifications from Google or similar services that are not personal\n- Any other content not explicitly listed under \"No spam\"\n\n### No Spam\nClassify the email as **no spam** if it is:\n- Sent personally by a real individual (not automated)\n- A one-time code (OTP, 2FA, login verification)\n- Authentication or password reset links requested by the user\n\n## Output instructions:\n- Respond with **only one word**: either `spam` or `no spam`\n- Do not include explanations, reasoning, or any other text\n"
+        }
+      },
+      "id": "4fc6acd0-9ce2-4e03-af49-3e17774a30db",
+      "name": "Spam Checker",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        960,
+        224
+      ],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "model": "hf.co/unsloth/Qwen3-4B-Instruct-2507-GGUF:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        960,
+        400
+      ],
+      "id": "7efec419-72eb-4027-aa5e-e902188b0b64",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "ZajWs11odlrOft5j",
+          "name": "Ollama LB"
+        }
+      },
+      "notes": "LOAD MODEL:\nollama pull hf.co/unsloth/Qwen3-4B-Instruct-2507-GGUF:latest"
+    },
+    {
+      "parameters": {
+        "model": "hf.co/unsloth/Qwen3-4B-Instruct-2507-GGUF:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        400
+      ],
+      "id": "77d84f6a-3aec-45a6-82cb-a7e54215adf3",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "ZajWs11odlrOft5j",
+          "name": "Ollama LB"
+        }
+      },
+      "notes": "LOAD MODEL:\nollama pull hf.co/unsloth/Qwen3-4B-Instruct-2507-GGUF:latest"
+    },
+    {
+      "parameters": {
+        "content": "## IMAP input\n\nIMAP trigger get the full email\nSpam checker is a Openai node with specific system prompt.\nIf the email is from services (google, microsoft, ecc) it considered as spam.\nIn this case the model try to extract only business emails.\nThe node print only 2 different output: \"spam\" and \"no spam\".\nIf \"spam\", nothing happen, if \"no spam\" the \"if node\" pass the message to the Agentic node",
+        "height": 508,
+        "width": 788,
+        "color": 3
+      },
+      "id": "30d91ace-6dd2-454c-a72e-d373322e3ad3",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        32
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent\n\nAI Agent get the message and process every message with a Telegram summary.",
+        "height": 508,
+        "width": 572,
+        "color": 4
+      },
+      "id": "bc9fe25c-b7fa-46da-8dd0-c404d10e4134",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1472,
+        32
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## About Ollama\n* Running on a Jetson Orin NX 16GB\n* Workflow execution time: 4-13 sec.\n* Human Mail Content detection: 8/10\n* Model: hf.co/unsloth/Qwen3-4B-Instruct-2507-GGUF:latest\n* HF-Ollama: https://huggingface.co/docs/hub/ollama",
+        "height": 508,
+        "width": 444,
+        "color": 5
+      },
+      "id": "80da5982-842a-4b01-bd7a-87757534f922",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        32
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Spam Checker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TelegramBot": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spam Checker": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Spam Checker",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "Europe/Zurich",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionOrder": "v1",
+    "executionTimeout": 300
+  },
+  "versionId": "66d370a9-1f64-45b7-acc4-12ae71ff1e89",
+  "meta": {
+    "templateId": "5142",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce8ef46daef41bc959c0dc6fbe544d4cb735fa7786b85b02253e7bddbd12a0cf"
+  },
+  "id": "KsubpirlGPkOiaAq",
+  "tags": []
+}
