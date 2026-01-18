@@ -4,7 +4,7 @@ This is my motivation:
 * Low ressource footprint (for llm)
 * Learning effect (how to use and wire together)
 * Be useful (do something that helps)
-* Run on-prem if possible (not all of my WFs, My DGX Spark is still in transit :-) )
+* Run on-prem if possible (My DGX Spark is sooo nice :-) )
 
 ## Mail Assistant TelegramBot with Ollama
 This is my first test for classify emails and directly shoot an an action
